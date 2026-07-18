@@ -1,0 +1,20 @@
+{
+  "id": "nx_XML_HTML_sitemap",
+  "name": "NX XML HTML Sitemap",
+  "description": "XMLサイトマップとHTMLサイトマップを追加・管理します。",
+  "version": "1.0.0",
+  "bootstrap": "bootstrap.php",
+  "requires": {
+    "nexapress": "1.9.1",
+    "php": "8.0"
+  },
+  "update": {
+    "provider": "github",
+    "repository": "aki-sho/nx_XML_HTML_sitemap",
+    "asset": "nx_XML_HTML_sitemap-{version}.zip"
+  },
+  "admin": {
+    "menu_label": "サイトマップ",
+    "dashboard": "admin/dashboard.php"
+  }
+}

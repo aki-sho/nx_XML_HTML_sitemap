@@ -1,0 +1,60 @@
+.nx-sitemap-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #dbe2ea;
+}
+
+.nx-sitemap-tab {
+    margin: 0;
+    padding: 10px 16px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: #64748b;
+    font: inherit;
+    cursor: pointer;
+}
+
+.nx-sitemap-tab:hover {
+    color: #0f172a;
+}
+
+.nx-sitemap-tab.is-active {
+    border-bottom-color: #2563eb;
+    color: #1d4ed8;
+    font-weight: 600;
+}
+
+.nx-sitemap-panel {
+    display: none;
+}
+
+.nx-sitemap-panel.is-active {
+    display: block;
+}
+
+@media (max-width: 640px) {
+    .nx-sitemap-tabs {
+        flex-direction: column;
+        gap: 0;
+        border-bottom: 0;
+    }
+
+    .nx-sitemap-tab {
+        width: 100%;
+        border: 1px solid #dbe2ea;
+        border-bottom: 0;
+        text-align: left;
+    }
+
+    .nx-sitemap-tab:last-child {
+        border-bottom: 1px solid #dbe2ea;
+    }
+
+    .nx-sitemap-tab.is-active {
+        border-left-color: #2563eb;
+        border-bottom-color: #dbe2ea;
+        background: #eff6ff;
+    }
+}
