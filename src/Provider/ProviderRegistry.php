@@ -9,7 +9,7 @@ class ProviderRegistry
     /*
      * 標準Providerを登録
      */
-    public static function createDefault(): self
+    public static function createDefault(array $settings = []): self
     {
         $registry = new self();
 
@@ -18,11 +18,11 @@ class ProviderRegistry
         );
 
         $registry->register(
-            new PostProvider()
+            new PostProvider($settings)
         );
 
         $registry->register(
-            new PageProvider()
+            new PageProvider($settings)
         );
 
         $registry->register(

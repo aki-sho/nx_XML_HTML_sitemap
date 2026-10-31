@@ -3,9 +3,9 @@
 namespace NexaPressXmlHtmlSitemap\Controller;
 
 use NexaPressXmlHtmlSitemap\Html\HtmlViewData;
-use NexaPressXmlHtmlSitemap\Provider\ProviderRegistry;
 use NexaPressXmlHtmlSitemap\Settings\Settings;
-use NexaPressXmlHtmlSitemap\Sitemap\SitemapService;
+use NexaPressXmlHtmlSitemap\Sitemap\SitemapCache;
+use Throwable;
 
 class HtmlSitemapController
 {
@@ -25,20 +25,22 @@ class HtmlSitemapController
             return;
         }
 
-        $registry =
-            ProviderRegistry::createDefault();
+        try {
+            $query = HtmlViewData::query($_GET);
+            $stream = SitemapCache::openHtml($settings, $query['sort']);
 
-        $service =
-            new SitemapService($registry);
-
-        $entries =
-            $service->collect($settings);
-
-        $viewData =
-            HtmlViewData::build(
-                $entries,
-                $settings
-            );
+            try {
+                $viewData = HtmlViewData::build(SitemapCache::readEntries($stream), $settings, $query);
+            } finally {
+                fclose($stream);
+            }
+        } catch (Throwable $exception) {
+            error_log('NX Sitemap: ' . $exception->getMessage());
+            http_response_code(503);
+            header('Retry-After: 5');
+            echo 'サイトマップを一時的に表示できません。';
+            return;
+        }
 
         $viewFile =
             NX_XML_HTML_SITEMAP_PATH

@@ -82,9 +82,20 @@ $partialFile =
             )
         ) ?>"
     >
+        <input
+            type="hidden"
+            name="_csrf_token"
+            value="<?= e(\app\Core\Csrf::token()) ?>"
+        >
+
         <?php if (is_file($partialFile)): ?>
             <?php require $partialFile; ?>
         <?php endif; ?>
+
+        <?php
+        $sitemapFormat = 'xml';
+        require NX_XML_HTML_SITEMAP_PATH . '/admin/partials/advanced.php';
+        ?>
 
         <div class="nx-sitemap-form-actions">
             <button

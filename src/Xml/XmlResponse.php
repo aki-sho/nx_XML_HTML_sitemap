@@ -20,4 +20,12 @@ class XmlResponse
 
         echo $xml;
     }
+
+    /** @param resource $stream */
+    public static function sendStream($stream): void
+    {
+        header('Content-Type: application/xml; charset=UTF-8');
+        header('X-Content-Type-Options: nosniff');
+        fpassthru($stream);
+    }
 }

@@ -2,11 +2,10 @@
 
 namespace NexaPressXmlHtmlSitemap\Controller;
 
-use NexaPressXmlHtmlSitemap\Provider\ProviderRegistry;
 use NexaPressXmlHtmlSitemap\Settings\Settings;
-use NexaPressXmlHtmlSitemap\Sitemap\SitemapService;
-use NexaPressXmlHtmlSitemap\Xml\XmlRenderer;
+use NexaPressXmlHtmlSitemap\Sitemap\SitemapCache;
 use NexaPressXmlHtmlSitemap\Xml\XmlResponse;
+use Throwable;
 
 class XmlSitemapController
 {
@@ -14,6 +13,16 @@ class XmlSitemapController
      * XMLサイトマップを表示
      */
     public function index(): void
+    {
+        $this->respond();
+    }
+
+    public function part(string $part): void
+    {
+        $this->respond($part);
+    }
+
+    private function respond(?string $part = null): void
     {
         $settings =
             Settings::section('xml');
@@ -26,22 +35,27 @@ class XmlSitemapController
             return;
         }
 
-        $registry =
-            ProviderRegistry::createDefault();
+        try {
+            $stream = $part === null ? SitemapCache::open('xml', $settings)
+                : SitemapCache::openPart($settings, $part);
 
-        $service =
-            new SitemapService($registry);
+            if ($stream === null) {
+                $this->notFound();
+                return;
+            }
+        } catch (Throwable $exception) {
+            error_log('NX Sitemap: ' . $exception->getMessage());
+            http_response_code(503);
+            header('Retry-After: 5');
+            echo 'サイトマップを一時的に表示できません。';
+            return;
+        }
 
-        $entries =
-            $service->collect($settings);
-
-        $renderer =
-            new XmlRenderer();
-
-        $xml =
-            $renderer->render($entries);
-
-        XmlResponse::send($xml);
+        try {
+            XmlResponse::sendStream($stream);
+        } finally {
+            fclose($stream);
+        }
     }
 
     /*

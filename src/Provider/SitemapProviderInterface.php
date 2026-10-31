@@ -12,5 +12,5 @@ interface SitemapProviderInterface
     /*
      * サイトマップ掲載データを取得
      */
-    public function entries(): array;
+    public function entries(): iterable;
 }

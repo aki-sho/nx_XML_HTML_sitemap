@@ -9,7 +9,9 @@
     font-weight: 600;
 }
 
-.nx-sitemap-field input[type="text"] {
+.nx-sitemap-field input[type="text"],
+.nx-sitemap-field input[type="number"],
+.nx-sitemap-field textarea {
     width: 100%;
     max-width: 520px;
     padding: 9px 11px;
@@ -20,11 +22,16 @@
     font: inherit;
 }
 
-.nx-sitemap-field input[type="text"]:focus {
+.nx-sitemap-field input:focus,
+.nx-sitemap-field textarea:focus {
     border-color: #2563eb;
     outline: 2px solid #bfdbfe;
     outline-offset: 1px;
 }
+
+.nx-sitemap-field textarea { resize: vertical; }
+.nx-sitemap-field small, .nx-sitemap-advanced > p { color: #64748b; }
+.nx-sitemap-advanced { margin-top: 28px; }
 
 .nx-sitemap-switch-list {
     display: flex;

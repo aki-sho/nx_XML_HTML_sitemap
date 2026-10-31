@@ -45,6 +45,8 @@ $cssFile =
             </p>
         </header>
 
+        <?php require NX_XML_HTML_SITEMAP_PATH . '/views/html/partials/tools.php'; ?>
+
         <div class="nx-public-sitemap-sections">
             <?php
             $sectionFiles = [
@@ -67,6 +69,7 @@ $cssFile =
             }
             ?>
         </div>
+        <?php require NX_XML_HTML_SITEMAP_PATH . '/views/html/partials/pagination.php'; ?>
     </main>
 </body>
 </html>

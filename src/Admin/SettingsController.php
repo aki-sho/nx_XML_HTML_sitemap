@@ -2,7 +2,9 @@
 
 namespace NexaPressXmlHtmlSitemap\Admin;
 
-use app\Core\Auth;
+use app\Core\Csrf;
+use app\Core\Permission;
+use InvalidArgumentException;
 use NexaPressXmlHtmlSitemap\Settings\Settings;
 use NexaPressXmlHtmlSitemap\Settings\SettingsValidator;
 use Throwable;
@@ -14,7 +16,8 @@ class SettingsController
      */
     public function saveXml(): void
     {
-        Auth::requireLogin();
+        Permission::require('extensions.manage');
+        Csrf::requireValid($_POST['_csrf_token'] ?? null);
 
         try {
             $settings =
@@ -28,6 +31,8 @@ class SettingsController
             Notice::success(
                 'XMLサイトマップ設定を保存しました。'
             );
+        } catch (InvalidArgumentException $exception) {
+            Notice::error($exception->getMessage());
         } catch (Throwable) {
             Notice::error(
                 'XMLサイトマップ設定を保存できませんでした。'
@@ -42,7 +47,8 @@ class SettingsController
      */
     public function saveHtml(): void
     {
-        Auth::requireLogin();
+        Permission::require('extensions.manage');
+        Csrf::requireValid($_POST['_csrf_token'] ?? null);
 
         try {
             $settings =
@@ -56,6 +62,8 @@ class SettingsController
             Notice::success(
                 'HTMLサイトマップ設定を保存しました。'
             );
+        } catch (InvalidArgumentException $exception) {
+            Notice::error($exception->getMessage());
         } catch (Throwable) {
             Notice::error(
                 'HTMLサイトマップ設定を保存できませんでした。'

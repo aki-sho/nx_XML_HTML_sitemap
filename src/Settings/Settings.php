@@ -3,6 +3,7 @@
 namespace NexaPressXmlHtmlSitemap\Settings;
 
 use JsonException;
+use NexaPressXmlHtmlSitemap\Sitemap\SitemapCache;
 use RuntimeException;
 
 class Settings
@@ -57,6 +58,7 @@ class Settings
             );
 
         self::write($settings);
+        SitemapCache::invalidate();
     }
 
     /*
@@ -171,6 +173,11 @@ class Settings
             }
 
             $value = $values[$key];
+
+            if ($defaultValue === [] && is_array($value)) {
+                $result[$key] = array_values($value);
+                continue;
+            }
 
             if (
                 is_array($defaultValue) &&

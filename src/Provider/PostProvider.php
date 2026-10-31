@@ -6,9 +6,17 @@ use NexaPressXmlHtmlSitemap\Repository\PostRepository;
 use NexaPressXmlHtmlSitemap\Sitemap\SitemapEntry;
 use NexaPressXmlHtmlSitemap\Support\DateFormatter;
 use NexaPressXmlHtmlSitemap\Support\UrlBuilder;
+use NexaPressXmlHtmlSitemap\Support\ExclusionPolicy;
 
 class PostProvider implements SitemapProviderInterface
 {
+    private array $excludedIds;
+
+    public function __construct(array $settings = [])
+    {
+        $this->excludedIds = array_fill_keys((array)($settings['excluded_post_ids'] ?? []), true);
+    }
+
     /*
      * 設定項目の識別名
      */
@@ -20,19 +28,19 @@ class PostProvider implements SitemapProviderInterface
     /*
      * 公開済み投稿を取得
      */
-    public function entries(): array
+    public function entries(): iterable
     {
-        $entries = [];
-
         foreach (PostRepository::published() as $post) {
-            $entries[] = new SitemapEntry(
+            if (isset($this->excludedIds[(int)$post['id']]) || !ExclusionPolicy::allows($post)) {
+                continue;
+            }
+
+            yield new SitemapEntry(
                 UrlBuilder::post($post),
                 (string)($post['title'] ?? ''),
                 'post',
                 DateFormatter::fromRecord($post)
             );
         }
-
-        return $entries;
     }
 }

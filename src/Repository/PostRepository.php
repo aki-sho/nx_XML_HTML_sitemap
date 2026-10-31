@@ -2,19 +2,13 @@
 
 namespace NexaPressXmlHtmlSitemap\Repository;
 
-use app\Models\Post;
-
 class PostRepository
 {
     /*
      * 公開済み投稿を取得
      */
-    public static function published(): array
+    public static function published(): iterable
     {
-        $posts = Post::published();
-
-        return is_array($posts)
-            ? $posts
-            : [];
+        yield from ContentRepository::published('posts');
     }
 }

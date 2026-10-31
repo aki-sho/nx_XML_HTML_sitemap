@@ -20,3 +20,8 @@ $router->get(
     '/sitemap.xml',
     XmlSitemapController::class . '@index'
 );
+
+$router->get(
+    '/sitemap-{part}.xml',
+    XmlSitemapController::class . '@part'
+);

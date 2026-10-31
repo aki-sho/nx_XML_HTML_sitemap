@@ -3,6 +3,8 @@
 use NexaPressXmlHtmlSitemap\Admin\Notice;
 use NexaPressXmlHtmlSitemap\Settings\Settings;
 
+\app\Core\Permission::require('extensions.manage');
+
 /*
  * 設定セクションを取得
  */
