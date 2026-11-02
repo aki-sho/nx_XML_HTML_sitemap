@@ -13,10 +13,7 @@ class Settings
      */
     public static function all(): array
     {
-        return self::mergeKnownValues(
-            self::defaults(),
-            self::read()
-        );
+        return self::locked(LOCK_SH, static fn() => self::mergeKnownValues(self::defaults(), self::read()));
     }
 
     /*
@@ -49,15 +46,11 @@ class Settings
             );
         }
 
-        $settings = self::all();
-
-        $settings[$section] =
-            self::mergeKnownValues(
-                $defaults[$section],
-                $values
-            );
-
-        self::write($settings);
+        self::locked(LOCK_EX, static function () use ($defaults, $section, $values): void {
+            $settings = self::mergeKnownValues($defaults, self::read());
+            $settings[$section] = self::mergeKnownValues($defaults[$section], $values);
+            self::write($settings);
+        });
         SitemapCache::invalidate();
     }
 
@@ -92,10 +85,11 @@ class Settings
             return [];
         }
 
+        if (is_link($filePath) || filesize($filePath) > 4194304) { throw new RuntimeException('設定ファイルの保存先・容量を確認してください。'); }
         $json = file_get_contents($filePath);
 
         if ($json === false || trim($json) === '') {
-            return [];
+            throw new RuntimeException('設定ファイルを読み込めません。');
         }
 
         try {
@@ -105,13 +99,12 @@ class Settings
                 512,
                 JSON_THROW_ON_ERROR
             );
-        } catch (JsonException) {
-            return [];
+        } catch (JsonException $exception) {
+            throw new RuntimeException('設定JSONが壊れています。元のファイルを保管して復旧してください。', 0, $exception);
         }
-
-        return is_array($settings)
-            ? $settings
-            : [];
+        if (!is_array($settings)) { throw new RuntimeException('設定JSONの形式が不正です。'); }
+        self::assertTypes(self::defaults(), $settings);
+        return $settings;
     }
 
     /*
@@ -145,16 +138,39 @@ class Settings
             );
         }
 
-        if (
-            file_put_contents(
-                self::filePath(),
-                $json . PHP_EOL,
-                LOCK_EX
-            ) === false
-        ) {
-            throw new RuntimeException(
-                '設定を保存できません。'
-            );
+        if (strlen($json . PHP_EOL) > 4194304) { throw new RuntimeException('設定ファイルの容量上限を超えました。'); }
+        $temporary = tempnam($directory, '.settings-');
+        try {
+            if ($temporary === false || realpath(dirname($temporary)) !== realpath($directory)
+                || file_put_contents($temporary, $json . PHP_EOL) !== strlen($json . PHP_EOL)
+                || !rename($temporary, self::filePath())) { throw new RuntimeException('設定を保存できません。'); }
+            @chmod(self::filePath(), 0600);
+        } finally { if (is_string($temporary) && is_file($temporary)) { unlink($temporary); } }
+    }
+
+    private static function locked(int $mode, callable $callback)
+    {
+        $directory = self::directoryPath();
+        if (is_link(BASE_PATH . '/storage') || is_link(BASE_PATH . '/storage/extensions') || is_link($directory)) { throw new RuntimeException('設定保存先が不正です。'); }
+        if (!is_dir($directory) && !mkdir($directory, 0700, true) && !is_dir($directory)) { throw new RuntimeException('設定保存先を作成できません。'); }
+        $path = self::filePath() . '.lock';
+        if (is_link($path)) { throw new RuntimeException('設定ロックの保存先が不正です。'); }
+        $lock = fopen($path, 'c');
+        if (!$lock) { throw new RuntimeException('設定ロックを開けません。'); }
+        try { if (!flock($lock, $mode)) { throw new RuntimeException('設定をロックできません。'); } return $callback(); }
+        finally { flock($lock, LOCK_UN); fclose($lock); }
+    }
+
+    private static function assertTypes(array $defaults, array $saved): void
+    {
+        foreach ($defaults as $key => $default) {
+            if (!array_key_exists($key, $saved)) { continue; }
+            $value = $saved[$key];
+            if (gettype($default) !== gettype($value)) { throw new RuntimeException('設定項目の型が不正です: ' . $key); }
+            if (is_array($default) && $default !== []) { self::assertTypes($default, $value); }
+            elseif ($default === []) {
+                foreach ($value as $item) { if (!is_string($item) && !is_int($item)) { throw new RuntimeException('除外設定の形式が不正です。'); } }
+            }
         }
     }
 

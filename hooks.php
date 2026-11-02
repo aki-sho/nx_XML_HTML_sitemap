@@ -131,3 +131,12 @@ add_action(
         echo '</script>';
     }
 );
+
+// Only an enabled XML endpoint is advertised; consumers need not guess its URL.
+add_action('nx_head', static function (): void {
+    try {
+        if ((\NexaPressXmlHtmlSitemap\Settings\Settings::section('xml')['enabled'] ?? false) === true) {
+            echo '<link rel="sitemap" type="application/xml" href="' . e(url('sitemap.xml')) . '">';
+        }
+    } catch (\Throwable $exception) { error_log('NX Sitemap: 設定を読み込めないためサイトマップ宣言を停止しました。'); }
+});

@@ -1,13 +1,13 @@
 # NX XML HTML Sitemap
 
-> 最新バージョン: 1.0.2（2026-10-31）。ローカルの未公開変更を反映し、ソースと配布物を揃えた同期リリースです。
+> 最新バージョン: 1.0.3（2026-11-03）。公開状態の確認・URL出力・設定ファイルの保護を改善しました。
 
 NexaPressへXMLサイトマップとHTMLサイトマップを追加する拡張機能です。
 
 検索エンジン向けのXMLサイトマップと、閲覧者向けのHTMLサイトマップを個別に設定できます。
 
-![Version](https://img.shields.io/badge/version-v1.0.0-blue)
-![NexaPress](https://img.shields.io/badge/NexaPress-1.9.1%2B-ff6b57)
+![Version](https://img.shields.io/badge/version-v1.0.3-blue)
+![NexaPress](https://img.shields.io/badge/NexaPress-2.1.0%2B-ff6b57)
 ![PHP](https://img.shields.io/badge/PHP-8.0%2B-777bb4?logo=php&logoColor=white)
 ![XML Sitemap](https://img.shields.io/badge/XML-Sitemap-2563eb)
 ![HTML Sitemap](https://img.shields.io/badge/HTML-Sitemap-e34f26?logo=html5&logoColor=white)
@@ -15,12 +15,12 @@ NexaPressへXMLサイトマップとHTMLサイトマップを追加する拡張�
 ## バージョン
 
 ```text
-1.0.0
+1.0.3
 ```
 
 ## 対応環境
 
-- NexaPress 1.9.1以上
+- NexaPress 2.1.0以上
 - PHP 8.0以上
 - PHP mbstring拡張
 - PHP DOM拡張
@@ -305,7 +305,7 @@ php build.php
 正常に完了すると、次のZIPが作成されます。
 
 ```text
-dist\nx_XML_HTML_sitemap-1.0.0.zip
+dist\nx_XML_HTML_sitemap-1.0.3.zip
 ```
 
 作成されたZIPを確認します。
@@ -317,7 +317,7 @@ dir dist
 ZIP内部を確認します。
 
 ```bat
-tar -tf "dist\nx_XML_HTML_sitemap-1.0.0.zip"
+tar -tf "dist\nx_XML_HTML_sitemap-1.0.3.zip"
 ```
 
 ## ZIP内部の構成
@@ -392,7 +392,7 @@ php tests/run.php ..\nexapress
 次の順番で確認してください。
 
 1. NexaPress管理画面の「拡張機能」を開く
-2. `nx_XML_HTML_sitemap-1.0.0.zip`をアップロードする
+2. `nx_XML_HTML_sitemap-1.0.3.zip`をアップロードする
 3. NX XML HTML Sitemapを有効化する
 4. 拡張機能メニューの「サイトマップ」を開く
 5. XMLサイトマップ設定を保存する
@@ -447,3 +447,13 @@ XMLサイトマップへ掲載されるのは、公開状態の投稿と固定�
 ### 動作確認について
 
 本番環境へ導入する前に、ローカル環境または検証環境で動作を確認してください。
+
+## 1.0.3の改修
+
+- 管理画面にXML／HTMLの有効状態と公開URLを表示し、実際のXMLを未ログイン状態で確認するボタンを追加しました。404（停止・未検出）、503（生成・設定の問題）、HTTP 200のHTML応答を区別します。
+- XMLが有効な場合だけ公開ページのheadにサイトマップを宣言し、URL収集側が実在する公開先を発見できるようにしました。
+- CMSが相対パスを返す場合もXMLと分割インデックスには完全なURLを出力します。キャッシュはサイトのホスト・方式を含む起点ごとに区別します。
+- 設定は共有ロックで読み込み、保存は排他ロックと一時ファイルの置換で行います。破損・型不正の設定を初期値へ黙って戻さず、管理画面に復旧案内を表示し、公開側は503で停止します。停止中の404と一時エラーは保存しない応答にします。
+- 無効化したXMLを強制的に公開する変更はありません。404の場合は管理画面の有効状態と公開結果を確認してください。
+
+追加確認：`php -n tests/url-context.php`。既存の回帰テストと合わせて実行してください。

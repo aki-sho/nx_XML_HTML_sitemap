@@ -84,7 +84,7 @@ class XmlRenderer
             . '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n", $bytes);
 
         for ($part = 1; $part <= $parts; $part++) {
-            $this->append($stream, '<sitemap><loc>' . $this->escape(url('sitemap-' . $part . '.xml'))
+            $this->append($stream, '<sitemap><loc>' . $this->escape(\NexaPressXmlHtmlSitemap\Support\UrlBuilder::absolute(url('sitemap-' . $part . '.xml')))
                 . '</loc></sitemap>' . "\n", $bytes);
         }
 

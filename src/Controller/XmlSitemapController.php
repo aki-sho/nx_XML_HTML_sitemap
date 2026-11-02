@@ -24,18 +24,9 @@ class XmlSitemapController
 
     private function respond(?string $part = null): void
     {
-        $settings =
-            Settings::section('xml');
-
-        if (
-            ($settings['enabled'] ?? false)
-            !== true
-        ) {
-            $this->notFound();
-            return;
-        }
-
         try {
+            $settings = Settings::section('xml');
+            if (($settings['enabled'] ?? false) !== true) { $this->notFound(); return; }
             $stream = $part === null ? SitemapCache::open('xml', $settings)
                 : SitemapCache::openPart($settings, $part);
 
@@ -46,6 +37,7 @@ class XmlSitemapController
         } catch (Throwable $exception) {
             error_log('NX Sitemap: ' . $exception->getMessage());
             http_response_code(503);
+            header('Cache-Control: no-store');
             header('Retry-After: 5');
             echo 'サイトマップを一時的に表示できません。';
             return;
@@ -64,6 +56,7 @@ class XmlSitemapController
     private function notFound(): void
     {
         http_response_code(404);
+        header('Cache-Control: no-store');
 
         echo '404 Not Found';
     }

@@ -9,7 +9,7 @@ class UrlBuilder
      */
     public static function home(): string
     {
-        return url();
+        return self::absolute(url());
     }
 
     /*
@@ -18,7 +18,7 @@ class UrlBuilder
     public static function post(
         array $post
     ): string {
-        return post_url($post);
+        return self::absolute(post_url($post));
     }
 
     /*
@@ -27,7 +27,7 @@ class UrlBuilder
     public static function page(
         array $page
     ): string {
-        return page_url($page);
+        return self::absolute(page_url($page));
     }
 
     /*
@@ -47,8 +47,21 @@ class UrlBuilder
             return '';
         }
 
-        return url(
+        return self::absolute(url(
             'category/' . rawurlencode($slug)
-        );
+        ));
+    }
+
+    /** Core URL helpers may return paths; XML requires a complete public URL. */
+    public static function absolute(string $url): string
+    {
+        if (preg_match('#^https?://#i', $url)) { return $url; }
+        if (!str_starts_with($url, '/') || str_starts_with($url, '//')) { throw new \RuntimeException('公開URLを確認できません。'); }
+        $host = (string)($_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? '');
+        if ($host === '' || preg_match('/[\x00-\x20\x7f\/@\\\\?#]/', $host) || !filter_var('http://' . $host, FILTER_VALIDATE_URL)) {
+            throw new \RuntimeException('公開サイトのホストを確認できません。');
+        }
+        $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (int)($_SERVER['SERVER_PORT'] ?? 0) === 443;
+        return ($https ? 'https://' : 'http://') . strtolower($host) . $url;
     }
 }

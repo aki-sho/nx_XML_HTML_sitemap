@@ -327,6 +327,15 @@ try {
     http_response_code(200);
 
     $registry = new ProviderRegistry();
+    $settingsFile = BASE_PATH . '/storage/extensions/' . NX_XML_HTML_SITEMAP_ID . '/settings.json';
+    $savedSettings = file_get_contents($settingsFile);
+    file_put_contents($settingsFile, '{broken json');
+    expectFailure(static fn() => Settings::all(), RuntimeException::class, 'corrupt settings are not silently reset');
+    ob_start(); (new XmlSitemapController())->index(); ob_end_clean();
+    check(http_response_code() === 503 && file_get_contents($settingsFile) === '{broken json', 'corrupt settings return 503 without overwrite');
+    expectFailure(static fn() => Settings::saveSection('xml', ['enabled'=>true]), RuntimeException::class, 'saving refuses to overwrite corrupt settings');
+    file_put_contents($settingsFile, $savedSettings);
+    http_response_code(200);
     $registry->register(new class implements SitemapProviderInterface {
         public function key(): string { return 'home'; }
         public function entries(): array {

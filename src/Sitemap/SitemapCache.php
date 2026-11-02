@@ -27,7 +27,7 @@ class SitemapCache
             throw new RuntimeException('キャッシュ保存先を作成できません。');
         }
 
-        $key = hash('sha256', json_encode([2, $settings, url()], JSON_THROW_ON_ERROR));
+        $key = hash('sha256', json_encode([3, $settings, \NexaPressXmlHtmlSitemap\Support\UrlBuilder::home()], JSON_THROW_ON_ERROR));
         $path = $directory . '/' . $format . '.cache';
         $cached = self::fresh($path, $key, self::generation());
 

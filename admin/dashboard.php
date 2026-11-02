@@ -23,7 +23,11 @@ if (!is_array($sections)) {
 /*
  * 保存済み設定を取得
  */
-$settings = Settings::all();
+try { $settings = Settings::all(); }
+catch (\Throwable $exception) {
+    echo '<div class="nx-sitemap-notice is-error" role="alert">設定を読み込めません。破損した設定を上書きせず、保存先を確認してください。</div>';
+    return;
+}
 
 /*
  * 保存結果を取得
@@ -49,7 +53,7 @@ $firstSection =
         </div>
 
         <span class="nx-sitemap-version">
-            Version 1.0.0
+            Version <?= e((string)($extensionInfo['version'] ?? '1.0.3')) ?>
         </span>
     </div>
 
@@ -63,6 +67,13 @@ $firstSection =
     }
     ?>
 
+    <section class="nx-sitemap-public-status">
+        <h2>公開状態の確認</h2>
+        <p>拡張機能は有効です。XML出力：<?= !empty($settings['xml']['enabled']) ? '有効' : '停止中（404を返します）' ?> ／ HTML出力：<?= !empty($settings['html']['enabled']) ? '有効' : '停止中（404を返します）' ?></p>
+        <p><a href="<?= e(url('sitemap.xml')) ?>" target="_blank" rel="noopener">XMLを開く</a> ／ <a href="<?= e(url('sitemap')) ?>" target="_blank" rel="noopener">HTMLを開く</a></p>
+        <button type="button" data-nx-sitemap-check="<?= e(url('sitemap.xml')) ?>">XMLの公開結果を確認</button>
+        <p role="status" data-nx-sitemap-result>停止中の404、生成エラーの503、正常なXMLを区別して確認できます。</p>
+    </section>
     <?php if ($sections === []): ?>
         <div class="nx-sitemap-notice is-error">
             設定画面を読み込めませんでした。
